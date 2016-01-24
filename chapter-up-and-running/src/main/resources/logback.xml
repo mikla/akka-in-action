@@ -8,12 +8,12 @@
         </encoder>
     </appender>
 
-    <logger name="akka" level="INFO" />
-    <logger name="spray" level="INFO" />
+    <logger name="akka" level="DEBUG" />
+    <logger name="spray" level="DEBUG" />
 
-    <logger name="com.goticks" level="INFO" />
+    <logger name="com.goticks" level="TRACE" />
 
-    <root level="INFO">
+    <root level="TRACE">
         <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>

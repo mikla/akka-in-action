@@ -1,37 +1,46 @@
 package com.goticks
 
 import akka.actor.{ Actor, Props, PoisonPill }
+import org.slf4j.{LoggerFactory, Logger}
+
 object TicketSeller {
   def props(event: String) = Props(new TicketSeller(event))
-//<start id="ch02-ticketseller-messages"/>
-  case class Add(tickets: Vector[Ticket]) //<co id="ch02_add_tickets"/>
-  case class Buy(tickets: Int) //<co id="ch02_buy_tickets"/>
-  case class Ticket(id: Int) //<co id="ch02_ticket"/>
+
+  case class Add(tickets: Vector[Ticket]) 
+  case class Buy(tickets: Int) 
+  case class Ticket(id: Int) 
   case class Tickets(event: String,
-                     entries: Vector[Ticket] = Vector.empty[Ticket]) //<co id="ch02_tickets"/>
-  case object GetEvent //<co id="ch02_get_event_ticket_seller"/>
-  case object Cancel //<co id="ch02_cancel_ticket_seller"/>
-//<end id="ch02-ticketseller-messages"/>
+                     entries: Vector[Ticket] = Vector.empty[Ticket]) 
+  case object GetEvent 
+  case object Cancel 
+
 }
 
-//<start id="ch02-ticketseller-imp"/>
 class TicketSeller(event: String) extends Actor {
   import TicketSeller._
 
-  var tickets = Vector.empty[Ticket] //<co id="list"/>
+  var tickets = Vector.empty[Ticket] 
+
+  override def preStart() = {
+    log.debug(s"Ticket seller actor for $event started.")
+  }
 
   def receive = {
-    case Add(newTickets) => tickets = tickets ++ newTickets //<co id="matchaddtickets"/>
-    case Buy(nrOfTickets) => //<co id="matchbuy"/>
+    case Add(newTickets) => tickets = tickets ++ newTickets
+    case Buy(nrOfTickets) =>
+      log.debug(s"Buying $nrOfTickets to ")
       val entries = tickets.take(nrOfTickets).toVector
       if(entries.size >= nrOfTickets) {
         sender() ! Tickets(event, entries)
         tickets = tickets.drop(nrOfTickets)
       } else sender() ! Tickets(event)
-    case GetEvent => sender() ! Some(BoxOffice.Event(event, tickets.size)) //<co id="matchgetevent"/>
+    case GetEvent =>
+      sender() ! Some(BoxOffice.Event(event, tickets.size))
     case Cancel =>
       sender() ! Some(BoxOffice.Event(event, tickets.size))
       self ! PoisonPill
   }
+
+  private lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
+
 }
-//<end id="ch02-ticketseller-imp"/>

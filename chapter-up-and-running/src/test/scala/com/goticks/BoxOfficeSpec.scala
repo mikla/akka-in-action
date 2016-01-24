@@ -1,17 +1,18 @@
 package com.goticks
 
-import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
+import akka.actor.{Actor, ActorRef, Props, ActorSystem}
 
-import akka.testkit.{ TestKit, ImplicitSender, DefaultTimeout }
+import akka.testkit.{TestKit, ImplicitSender, DefaultTimeout}
 
-import org.scalatest.{ WordSpecLike, MustMatchers }
+import org.scalatest.{WordSpecLike, MustMatchers}
 
 class BoxOfficeSpec extends TestKit(ActorSystem("testBoxOffice"))
-    with WordSpecLike
-    with MustMatchers
-    with ImplicitSender
-    with DefaultTimeout
-    with StopSystemAfterAll {
+  with WordSpecLike
+  with MustMatchers
+  with ImplicitSender
+  with DefaultTimeout
+  with StopSystemAfterAll {
+
   "The TicketMaster" must {
 
     "Create an event and get tickets from the correct Ticket Seller" in {
@@ -34,10 +35,10 @@ class BoxOfficeSpec extends TestKit(ActorSystem("testBoxOffice"))
       import TicketSeller._
 
       val boxOffice = system.actorOf(Props(
-          new BoxOffice  {
-            override def createTicketSeller(name: String): ActorRef = testActor
-          }
-        )
+        new BoxOffice {
+          override def createTicketSeller(name: String): ActorRef = testActor
+        }
+      )
       )
 
       val tickets = 3

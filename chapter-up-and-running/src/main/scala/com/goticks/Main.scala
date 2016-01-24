@@ -1,44 +1,37 @@
 package com.goticks
 
-//<start id="ch02-main-imports"/>
-import akka.actor.{ ActorSystem , Actor, Props } //<co id="ch02_import_actor"/>
-import akka.io.IO //<co id="ch02_import_io"/>
-import akka.pattern.ask //<co id="ch02_import_ask"/>
-import akka.util.Timeout //<co id="ch02_import_timeout"/>
+import akka.actor.{ ActorSystem , Actor, Props } 
+import akka.io.IO 
+import akka.pattern.ask 
+import akka.util.Timeout 
 
-import com.typesafe.config.{ Config, ConfigFactory } //<co id="ch02_import_config"/>
+import com.typesafe.config.{ Config, ConfigFactory } 
 
-import spray.can.Http //<co id="ch02_import_http"/>
+import spray.can.Http 
 
-//<end id="ch02-main-imports"/>
-
-//<start id="ch02-start-http"/>
 object Main extends App
     with RequestTimeout
     with ShutdownIfNotBound {
 
-  val config = ConfigFactory.load() //<co id="ch02_load_config"/>
-  val host = config.getString("http.host") //<co id="ch02_get_http_pars"/>
+  val config = ConfigFactory.load() 
+  val host = config.getString("http.host") 
   val port = config.getInt("http.port")
 
-  implicit val system = ActorSystem("goticks") //<co id="ch02_create_actorsystem"/>
+  implicit val system = ActorSystem("goticks") 
 
-  implicit val executionContext = system.dispatcher //<co id="ch02_ec_for_asking"/>
+  implicit val executionContext = system.dispatcher 
 
-  implicit val timeout = requestTimeout(config) //<co id="ch02_timeout_for_asking"/>
+  implicit val timeout = requestTimeout(config) 
 
-  val api = system.actorOf(Props(new RestApi(timeout)), "httpInterface") //<co id="ch02_toplevelactor"/>
+  val api = system.actorOf(Props(new RestApi(timeout)), "httpInterface") 
 
-  val response = IO(Http).ask(Http.Bind(listener = api, interface = host, port = port)) //<co id="ch02_startServer"/>
-  shutdownIfNotBound(response) //<co id="ch02_http_server_bind_response"/>
+  val response = IO(Http).ask(Http.Bind(listener = api, interface = host, port = port)) 
+  shutdownIfNotBound(response) 
 }
 
-//<end id="ch02-start-http"/>
-
-//<start id="ch02-support-traits"/>
 trait RequestTimeout {
   import scala.concurrent.duration._
-  def requestTimeout(config: Config): Timeout = { //<co id="ch02_timeout_spray_can"/>
+  def requestTimeout(config: Config): Timeout = { 
     val t = config.getString("spray.can.server.request-timeout")
     val d = Duration(t)
     FiniteDuration(d.length, d.unit)
@@ -49,12 +42,12 @@ trait ShutdownIfNotBound {
   import scala.concurrent.ExecutionContext
   import scala.concurrent.Future
 
-  def shutdownIfNotBound(f: Future[Any]) //<co id="ch02_shutdownIfNotBound"/>
+  def shutdownIfNotBound(f: Future[Any]) 
     (implicit system: ActorSystem, ec: ExecutionContext) = {
     f.mapTo[Http.Event].map {
       case Http.Bound(address) =>
         println(s"REST interface bound to $address")
-      case Http.CommandFailed(cmd) => //<co id="http_command_failed"/>
+      case Http.CommandFailed(cmd) => 
         println(s"REST interface could not bind: ${cmd.failureMessage}, shutting down.")
         system.shutdown()
     }.recover {
@@ -64,5 +57,3 @@ trait ShutdownIfNotBound {
     }
   }
 }
-
-//<end id="ch02-support-traits"/>
